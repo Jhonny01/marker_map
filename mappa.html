@@ -1,7 +1,8 @@
 <html>
 	<head>
 		<title>Sito Mappa</title>
-		<script>function CalculateDetail(tourdetail,origin)
+		<script>var arrayCoor = [];
+		function CalculateDetail(tourdetail,origin)
 {
 	var origintru={lat:45.022,lng: 8.045};/*
 	var destination={lat: 47.045,lng: 8.046};*/
@@ -253,6 +254,9 @@ function clickInfowindowTourDetail(element) {
     google.maps.event.trigger(marker, 'click');
 };
 //-------------------------------------------------------------------------------------------------------
+var arrayInd = ["Via Roma,3 Palermo","Via Roma,7 Piemonte","Via Roma,9 Lazio"];
+
+
 function initMap() {
 		//debugger;
 		var map=new google.maps.Map(document.getElementById("googleMap"),{
@@ -262,7 +266,7 @@ function initMap() {
 	//	var markerA;
 	//	var icon="https://img.freepik.com/icone-gratis/icone-home-silhouette_318-85097.jpg?size=338c&ext=jpg"+(i+1)+"&color=5680FC";
 	//	markerA.setIcon(icon);
-		var coordinates_array = [[51.508742,-0.120850],[53.555,-0.35555],[50.44545,1.23445]];
+		var coordinates_array = [[51.508742,-0.120850],[53.555,-0.35555],[50.44545,1.23445]/*,[45.56282,8.058281][45.32111,8.426236]*/];
 		var iconX="https://img.freepik.com/icone-gratis/icone-home-silhouette_318-85097.jpg?size=25c&ext=jpg";
 		
 		var coordinates = [0,0];
@@ -311,6 +315,7 @@ function initMap() {
 		return qArray;
 	}
 //-----------------------------------------------------------------------------------------------------------
+
 	function setMarkers(matrix,mymap,icon){
 		for(var i=0;i<matrix.length;i++)
 		{
@@ -341,15 +346,52 @@ function initMap() {
 				});*/
 			
 			//	marker.setIcon(icon);
-				
+
 				var infowindows_text="ccc";
 				setMarker(matrix,mymap,icon,infowindows_text,i);
+				codeAddress(mymap,i,icon);
+				var prom = new promise.resolve(codeAddress);
+				var p1 = new Promise(
+        // La funzione è chiamata con la capacità di risolvere o
+        // rigettare la promessa
+        function(resolve, reject) {
+            log.insertAdjacentHTML('beforeend', thisPromiseCount +
+                ') Promise started (<small>Async code started</small>)<br/>');
+            // Questo è solo un esempio per creare l'asincronicità
+            codeAddress(mymap,i,icon),resolve(0));
+				promise.then(alert(arrayCoor));
+				alert(arrayCoor);
+			
 				//GetDistance(new google.maps.LatLng(51.508742, -0.120850),latlng1);
 		}
 	}
 	
+	function codeAddress(mymap,i,icon)
+	{
+		var geocoder = new google.maps.Geocoder();
+		var address = arrayInd[i];
+		var map = mymap;
+ 		 geocoder.geocode( {address}, function(results, status) 
+  			{
+    			if (status == google.maps.GeocoderStatus.OK) 
+   				{
+      				map.setCenter(results[0].geometry.location);
+     				
+      				var marker = new google.maps.Marker(
+      				{
+         				map: map,
+          				position: results[0].geometry.location
+     				});
+					 debugger;
+					 arrayCoor.push(results[0].geometry.location);
+    			} else
+					{
+    					alert('Geocode was not successful for the following reason: ' + status);
+   					}
+  			});
+	}
+
 	function setMarker(matrix,mymap,icon,contentString,i){
-		
 		  //var contentString = "ciao.2"
 			var randPlace = {lat: matrix[i][0], lng: matrix[i][1]};
 			var infowindow = new google.maps.InfoWindow(
