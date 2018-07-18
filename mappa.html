@@ -7,172 +7,41 @@
 	var origintru={lat:45.022,lng: 8.045};/*
 	var destination={lat: 47.045,lng: 8.046};*/
 	var destination= {lat: parseFloat(tourdetail.new_latitude),lng:	parseFloat(tourdetail.new_longitude)};
-	
-	calculateDistances(origin,destination)
-           .done(function(response){
-				//alert("tutto ok");
-                var origins = response.originAddresses;
-
-                for (var i = 0; i < origins.length; i++) {
-                    var results = response.rows[i].elements;
-						
-                    for (var j = 0; j < results.length; j++) {
-						
-						var durationInt=Math.round(results[j].duration.value/60);
-						tourdetail.new_duration=durationInt.toString();
-						var kmDec= results[j].distance.value/1000;
-						var kmString=kmDec.toString().replace(".",",") ;
-						//alert(kmString);
-						var latString= (destination.lat).toString();
-						//latString= latString.substring(0,latString.length-1);
-						tourdetail.new_km=(results[j].distance.value/1000).toString();
-						//tourdetail.new_latitude= latString;
-						tourdetail.new_latitude= latString;
-						tourdetail.new_longitude= (destination.lng).toString();
-						tourdetail.new_enddate=CalculateEndTime(tourdetail.new_startdate,durationInt);
-                        if(UpdateRecord(array[index].new_tourdetailId,tourdetail, "new_tourdetailSet") == true)
-						{
-							//alert("Dettaglio Giro Aggiunto");
-							//CreateDetail(100000001);
-							
-							//RefreshTours("select_Tour");
-						}
-						//console.log(results[j].distance.text);
-                        /*list.push(results[j].distance.text);
-						list.push(results[j].duration.text);	
-						alert(list[0]+" - "+list[1]);*/
-                    }
-                }
-
-				RefreshTourDetail(tourdetail.new_tourid.Id);
-           })
-           .fail(function(status){
-		   alert("fail");
-              //document.getElementById('result').innerHTML = 'An error occured. Status: ' + status;
-           });
 }
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-function calculateDistances(origins,destinations) {
+function calculateDistances(origins,destinations)
+	{
             var service = new google.maps.DistanceMatrixService();
             var d = $.Deferred();
 			//alert("function non ancora defer");
             service.getDistanceMatrix(
-                {
-                    origins: [origins],
-                    destinations: [destinations],
+                {													// Passaggio parametri
+                    origins: [origins],								//
+                    destinations: [destinations],					//
                     travelMode: google.maps.TravelMode.DRIVING,
                     unitSystem: google.maps.UnitSystem.METRIC,
                     avoidHighways: false,
                     avoidTolls: false
                 }, 
-                function(response, status){
-                  if (status != google.maps.DistanceMatrixStatus.OK) {
+                function(response, status){									
+                  if (status != google.maps.DistanceMatrixStatus.OK) {			// A seconda della condizione...
 					  //alert("errr");
-                     d.reject(status);
+                     d.reject(status);// <----------------------------------- //vuol dire che la richiesta non è stata soddisfatta	
 					 
                   } else {
 					  //alert("function defer");
-                     d.resolve(response);
+                     d.resolve(response);// <-------------------------------- // sennò è stata risolta, e ricaviamo il valore della distanza
 					 
                   }
                 });
-            return d.promise();
-}
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-function CalculateEndTime(starttime,duration)
-{
-	var endtime=new Date(starttime);
-	var minutes= RoundMinutes(endtime.getMinutes()+duration);
-	endtime.setMinutes(minutes);
-	return endtime;
-}
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-function ConvertStringToTime(timeString)
-{
-	timeString=timeString.replace(":",":");
-	timeString=timeString.replace(",",":");
-	timeString= timeString.split(/:/);
-	var h=parseInt(timeString[0])*60;
-	var m = parseInt(timeString[1]);
-	return h+m;
-}
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-function ConvertTimeToString(time)
-{
-	var timeduration=(time/60).toString().split(".");
-	var minutes= parseInt(timeduration[1]);
-	minutes=ParseInt(minutes/60);
-	var timestring= timeduration[0]+":"+minutes;
-	return timestring;
-}
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-function DisplayOneTour(arraydetails)
-{
-	markerDetails=[];
-	var tickets=[];
-	var tourid= arraydetails[0].new_tourid.Id;
-	var tour= GetTourSite(tourid);
-	var tempsite=GetOneSite(tour[0].new_siteid.Id);
-	var site =tempsite[0];
-	//((site.Address1_Latitude+","+site.Address1_Longitude).toString());
-	var base=new google.maps.LatLng(site.Address1_Latitude,site.Address1_Longitude);
-	//var base=new google.maps.LatLng(45.5396924,8.0498592);
-	var mapOptions = {
-					zoom: 6,
-    				center: base,
-					mapTypeId: google.maps.MapTypeId.ROADMAP
- 				 };
- 	var map = new google.maps.Map(document.getElementById('map-overlay'),mapOptions);
-	if (arraydetails!= null) {
-        var waypts = [];
-		
-        for (var i = 0; i < arraydetails.length; i++) 
-		{
-			if(arraydetails[i].new_type.Value!=100000002)
-			{
-				var ticket=GetTicket(arraydetails[i].new_ticketid.Id);
-				var latlng1 = new google.maps.LatLng(arraydetails[i].new_latitude,arraydetails[i].new_longitude);
-				var marker = new google.maps.Marker({
-				position:latlng1,
-				map:map
-
-				});
-				
-				markerDetails.push(marker);
-				if(ticket!=null)
-					tickets.push(ticket[0]);
-				else
-					tickets.push("");
-				waypts.push({
-					location:latlng1,
-					stopover:true});
-			}
-			else
-			{
-				var marker = new google.maps.Marker({position: null});
-				markerDetails.push(marker);
-				tickets.push("");
-			}
-			
-        }
-		
-		var directionsDisplay;
-		var directionsService = new google.maps.DirectionsService();
-		
-		
-		$('#div-mapoverlay').fadeIn(10);
-		google.maps.event.trigger(map, 'resize');
-		map.setCenter(new google.maps.LatLng(45.5396924,8.0498592));
-		calcRoute(base,base,directionsDisplay,directionsService,map,waypts,markerDetails,tickets);
-   }
-};
+            return d.promise();												 // ritorna lo stato della "promise"
+	}
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 var calcRoute= function (start,end,directionsDisplay,directionsService,map,waypts,markerDetails,tickets) {
 //	debugger;
 		try
 		{
 			var rendererOptions = {
-			
 					suppressMarkers : true
 				}
 			directionsDisplay = new google.maps.DirectionsRenderer(rendererOptions);
@@ -225,49 +94,22 @@ var calcRoute= function (start,end,directionsDisplay,directionsService,map,waypt
 		directionsDisplay.setMap(map);
 		
 		}catch (err) {alert("err "+err); }
-
 };
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-function attachMessage(marker, message) {
-  var infowindow = new google.maps.InfoWindow({
-    content: message
-  });
+//--------------------------------------------------------------------------------------------------
+var arrayInd = ["Via Roma,3 Palermo","Via Roma,7 Piemonte","Via Roma,9 Lazio"];					// Variabile array globale contenente gli indirizzi dei marker
 
-  marker.addListener('click', function() {
-    infowindow.open(marker.get('map'), marker);
-  });
-  google.maps.event.addListener(infowindow, 'domready', function() {
-	$('#nuvola_tour_details').remove();
-	var id=marker.id.replace("m_","");
-	$("#infowindow_"+id).width(365).height(335);
-  });
-}
-//-------------------------------------------------------------------------------------------------------
-
-function clickInfowindowTourDetail(element) {
-    //debugger;
-    var id = element.id;
-    id = id.replace("img_", "");
-	id = parseInt(id);
-	id--;
-    var marker = markerDetails[id];
-    google.maps.event.trigger(marker, 'click');
-};
-//-------------------------------------------------------------------------------------------------------
-var arrayInd = ["Via Roma,3 Palermo","Via Roma,7 Piemonte","Via Roma,9 Lazio"];
-
-
-function initMap() {
+function initMap()		// F. per settare la mappa
+	{
 		//debugger;
-		var map=new google.maps.Map(document.getElementById("googleMap"),{
-		center: {lat: 51.508742, lng: -0.120850},
+		var map = new google.maps.Map(document.getElementById("googleMap"),{
+		center: {lat: 51.508742, lng: -0.120850},		// set centro;
 		zoom:5,
 		});
 	//	var markerA;
 	//	var icon="https://img.freepik.com/icone-gratis/icone-home-silhouette_318-85097.jpg?size=338c&ext=jpg"+(i+1)+"&color=5680FC";
 	//	markerA.setIcon(icon);
-		var coordinates_array = [[51.508742,-0.120850],[53.555,-0.35555],[50.44545,1.23445]/*,[45.56282,8.058281][45.32111,8.426236]*/];
-		var iconX="https://img.freepik.com/icone-gratis/icone-home-silhouette_318-85097.jpg?size=25c&ext=jpg";
+		var coordinates_array = [[51.508742,-0.120850],[53.555,-0.35555],[50.44545,1.23445]/*,[45.56282,8.058281][45.32111,8.426236]*/]; // Array di coord. di prova
+		var iconX="https://img.freepik.com/icone-gratis/icone-home-silhouette_318-85097.jpg?size=25c&ext=jpg";			// Ciclo delle coord. prova
 		
 		var coordinates = [0,0];
 		
@@ -278,45 +120,16 @@ function initMap() {
 			
 			}
 		}
-		alert(distance_min(coordinates_array, coordinates));
+//		alert(distance_min(coordinates_array, coordinates));
 /*		var icondx="http://thydzik.com/thydzikGoogleMap/markerlink.php?text=";
 		marker.setIcon(icondx);*/
 		
-		alert(quadrato());
+//		alert(quadrato());
 		setMarkers(coordinates_array,map.center,map,iconX);
 		//setMarkers(quadrato(),map,iconX);
 	};
 //-------------------------------------------------------------------------------------------------------	
-	function distance_min(array, coordinates){
-//		var dx = 0;
-		var  ind_min=0;
-		for(i = 0 ;i < array.length ;i++){
-			if(i == 0){
-				var dx = Math.sqrt(Math.pow((array[i][0] - coordinates[0]), 2) + Math.pow((array[i][1] - coordinates[1]), 2));
-			}
-			var d = Math.sqrt(Math.pow((array[i][0] - coordinates[0]), 2) + Math.pow((array[i][1] - coordinates[1]), 2));
-			if(d < dx){
-				dx = d;
-				ind_min = i;
-			}
-		}
-		return ind_min;
-	}
-//-------------------------------------------------------------------------------------------------------------
-	function quadrato(){
-		var x1 = 5.000000;
-		var y1 = 5.000000;
-		var center = [[51.582343,-7.483274]];
-		var pA = [center[0][0] + y1, center[0][1] - x1];
-		var pB = [center[0][0] + y1, center[0][1] + x1];
-		var pC = [center[0][0] - y1, center[0][1] - x1];
-		var pD = [center[0][0] - y1, center[0][1] + x1];
-		var qArray = [pA,pB,pC,pD];
-		return qArray;
-	}
-//-----------------------------------------------------------------------------------------------------------
-
-	function setMarkers(matrix,center,mymap,icon){
+	function setMarkers(matrix,center,mymap,icon){			// F. per creare i marker aventi indirizzi specifici attraverso un ciclo
 		for(var i=0;i<matrix.length;i++)
 		{
 	/*	var latlng1 = new google.maps.LatLng(matrix[i][0],matrix[i][1]);
@@ -350,33 +163,27 @@ function initMap() {
 				var infowindows_text="ccc";
 				setMarker(matrix,mymap,icon,infowindows_text,i);
 				
-        // La funzione è chiamata con la capacità di risolvere o
-        // rigettare la promessa
-        
-          
-            // Questo è solo un esempio per creare l'asincronicità
-				async function codeAddress(center){
+				async function codeAddress(center){							// F. per associare una posizione specifica ad un marker sulla mappa
 					return new Promise(
 					async function(resolve, reject){
 						var geocoder = new google.maps.Geocoder();
-							var address = arrayInd[i];
+							var address = arrayInd[i];						// Passaggio degli indirizzi dichiarati in maniera globale
 							var map = mymap;
- 							 geocoder.geocode( {address}, async function(results, status) 
+ 							 geocoder.geocode( {address}, async function(results, status)  // Dichiarazione del geocoder :
   								{
     								if (status == google.maps.GeocoderStatus.OK) 
    									{
-      									map.setCenter(results[0].geometry.location);
+      									map.setCenter(results[0].geometry.location);		// - centro ;
 									
       									var marker = new google.maps.Marker(
-      									{
-        					 				map: map,
-        					  				position: results[0].geometry.location
+      									{	
+        					 				map: map,										// - mappa su cui verrà messo il marker ;
+        					  				position: results[0].geometry.location			// - posizione del marker ;
 										 });
 										 let isok= await DistanceOK(10300000,center,results[0].geometry.location);
 										 if(isok){
 											arrayCoor.push(results[0].geometry.location)
 										 }
-										 
 										 resolve(arrayCoor);
     								} else
 										{
@@ -386,8 +193,6 @@ function initMap() {
 						}
 				);
 				}; 
-					
-
 				async function DistanceOK(range,origin,destination){
 					return new Promise(async function(resolve, reject) {
 						
@@ -399,9 +204,6 @@ function initMap() {
 							}
 							resolve(false);
 						}
-						
-					
-
 					);
 				});
 				}
@@ -409,99 +211,52 @@ function initMap() {
 					let array= await codeAddress(center);
 					alert(array);
 				}
-
 				showArray();
-			
 				//GetDistance(new google.maps.LatLng(51.508742, -0.120850),latlng1);
-		
-	
 		}
 	}
 	
-
-	function setMarker(matrix,mymap,icon,contentString,i){
+	function setMarker(matrix,mymap,icon,contentString,i){				// F. per associare ad un marker delle coordinate e creare una finestra di descrizione la click
 		  //var contentString = "ciao.2"
-			var randPlace = {lat: matrix[i][0], lng: matrix[i][1]};
-			var infowindow = new google.maps.InfoWindow(
+			var randPlace = {lat: matrix[i][0], lng: matrix[i][1]};		// Passa il valore delle coordinate
+			var infowindow = new google.maps.InfoWindow(			// Dichiarazione della finestra
 			{
-				content: contentString
+				content: contentString								// Dichiarazione del contenuto della finestra
 			});
 
-			var marker = new google.maps.Marker(
+			var marker = new google.maps.Marker(					// Dichiarazione marker :
 				{
-					position: randPlace,
-					map: mymap,
-					title: 'Clicca per info.2'
+					position: randPlace,							// - coordinate ;
+					map: mymap,										// - mappa su cui verrà messo il marker ;
+					title: 'Clicca per info.2'						// - scritta visualizzata al passaggio del mouse.
 				});
 			marker.addListener('click', function()
 				{
-					infowindow.open(mymap, marker);
+					infowindow.open(mymap, marker);					// Dichiarazione modalità di apertura della finestra
 				});
 			marker.setIcon(icon);
 	}
 //------------------------------------------------------------------------------------
- /*function showSteps(directionResult, markerDetails, stepDisplay, map) {
-  // For each step, place a marker, and add the text to the marker's infowindow.
-  // Also attach the marker to an array so we can keep track of it and remove it
-  // when calculating new routes.
-  var myRoute = directionResult.routes[0].legs[0];
-  for (var i = 0; i < myRoute.steps.length; i++) {
-    var marker = markerDetails[i] = markerDetails[i] || new google.maps.Marker;
-    marker.setMap(map);
-    marker.setPosition(myRoute.steps[i].start_location);
-    attachInstructionText(stepDisplay, marker, myRoute.steps[i].instructions);
-  }
-}
-//------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-function attachInstructionText(stepDisplay, marker, text, map) {
-  google.maps.event.addListener(marker, 'click', function() {
-    // Open an info window when the marker is clicked on, containing the text
-    // of the step.
-    stepDisplay.setContent(text);
-    stepDisplay.open(map, marker);
-  });   */	
-  
 	function GetDistance(origin,destination){
 		var service = new google.maps.DistanceMatrixService();
 		var d = $.Deferred();
-		service.getDistanceMatrix(
-		{
-			origins: [origin],
-			destinations: [destination],
+		service.getDistanceMatrix(	
+		{											// Passaggio dei parametri
+			origins: [origin],						//
+			destinations: [destination],			//
 			travelMode: 'DRIVING',
 			avoidHighways: false,
 			avoidTolls: false,
 		},  function(response, status){
-                  if (status != google.maps.DistanceMatrixStatus.OK) {
+                  if (status != google.maps.DistanceMatrixStatus.OK) {				// Se "status" è diverso da "google.maps.DistanceMatrixStatus.OK"
 					
-                     d.reject(status);
+                     d.reject(status);												// vuol dire che la richiesta non è stata soddisfatta
                   } else {
-					 d.resolve(response.rows[0].elements[0].distance.value);
+					 d.resolve(response.rows[0].elements[0].distance.value);		// sennò è stata risolta, e ricaviamo il valore della distanza
 					}
                   });
-		return d.promise();
+		return d.promise();															// ritorna lo stato della "promise"
 	}
-	
-/*function callback(response, status) {
-  if (status == 'OK') {
-    var origins = response.originAddresses;
-    var destinations = response.destinationAddresses;
-//	debugger;
-    for (var i = 0; i < origins.length; i++) {
-      var results = response.rows[i].elements;
-      for (var j = 0; j < results.length; j++) {
-        var element = results[j];
-        var distance = element.distance.text;
-	//	var distance = element.distance.value;   per il valore effettivo
-        var duration = element.duration.text;
-        var from = origins[i];
-        var to = destinations[j];
-		console.log("distanza="+element.distance.value);
-		d.resolve(element.distance.value);
-      }
-    }
-  }
-}*/
 	</script>
 </head>
 	<body>
