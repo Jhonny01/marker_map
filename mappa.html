@@ -98,20 +98,39 @@ var calcRoute= function (start,end,directionsDisplay,directionsService,map,waypt
 //--------------------------------------------------------------------------------------------------
 var arrayInd = ["Via Roma,3 Palermo","Via Roma,7 Piemonte","Via Roma,9 Lazio"];					// Variabile array globale contenente gli indirizzi dei marker
 
+function GetLatLng(param){
+	var latlng = location.search.split(param+'=')[1];
+	return latlng;
+}
 function initMap()		// F. per settare la mappa
 	{
 		//debugger;
+		var latlng=GetLatLng("Data").split(";");
+		var latitude= Number(latlng[0]);
+		var longitude =Number(latlng[1]);
 		var map = new google.maps.Map(document.getElementById("googleMap"),{
-		center: {lat: 51.508742, lng: -0.120850},		// set centro;
-		zoom:5,
+		//center: {lat: 51.508742, lng: -0.120850},		// set centro;
+		center: {lat: latitude, lng: longitude},
+		zoom:7,
 		});
+		var iconX="https://img.freepik.com/icone-gratis/icone-home-silhouette_318-85097.jpg?size=25c&ext=jpg";			// Ciclo delle coord. prova
+		setMarker(latitude,longitude,map,iconX,"");
+
+		//TO DO
+		 /*
+		var arrayAddresses = GetAllContracts();
+		for(arrayAddresses){
+			getCoordinates(arrayAddresses[i].["iri_address"],arrayAddresses[i]["iri_zipcode"],arrayAddresses[i]["iri_city"]);
+			setMarker(latitude,longitude,map,iconX,"");
+		}
+		*/
 	//	var markerA;
 	//	var icon="https://img.freepik.com/icone-gratis/icone-home-silhouette_318-85097.jpg?size=338c&ext=jpg"+(i+1)+"&color=5680FC";
 	//	markerA.setIcon(icon);
-		var coordinates_array = [[51.508742,-0.120850],[53.555,-0.35555],[50.44545,1.23445]/*,[45.56282,8.058281][45.32111,8.426236]*/]; // Array di coord. di prova
-		var iconX="https://img.freepik.com/icone-gratis/icone-home-silhouette_318-85097.jpg?size=25c&ext=jpg";			// Ciclo delle coord. prova
 		
-		var coordinates = [0,0];
+		
+		
+		/*var coordinates = [0,0];
 		
 		for(i = 0 ;i < coordinates_array.length ;i++){
 			if(coordinates_array[0] <= coordinates_array[i])
@@ -119,48 +138,20 @@ function initMap()		// F. per settare la mappa
 			//var iconX="https://img.freepik.com/icone-gratis/icone-home-silhouette_318-85097.jpg?size=338c&ext=jpg";
 			
 			}
-		}
+		}*/
 //		alert(distance_min(coordinates_array, coordinates));
 /*		var icondx="http://thydzik.com/thydzikGoogleMap/markerlink.php?text=";
 		marker.setIcon(icondx);*/
 		
 //		alert(quadrato());
-		setMarkers(coordinates_array,map.center,map,iconX);
+		/*setMarkers(coordinates_array,map.center,map,iconX);*/
 		//setMarkers(quadrato(),map,iconX);
 	};
 //-------------------------------------------------------------------------------------------------------	
 	function setMarkers(matrix,center,mymap,icon){			// F. per creare i marker aventi indirizzi specifici attraverso un ciclo
 		for(var i=0;i<matrix.length;i++)
 		{
-	/*	var latlng1 = new google.maps.LatLng(matrix[i][0],matrix[i][1]);
-			var marker = new google.maps.Marker({
-				position:latlng1,
-				map:mymap
-				
-				});*/
-				
-			/*	  var contentString = "ciao"
-				
-				var London = {lat: 51.508742, lng: -0.120850 }
-				var infowindow = new google.maps.InfoWindow(
-				{
-					content: contentString
-				});
-
-				var marker = new google.maps.Marker(
-				{
-					position: London,
-					map: mymap,
-					title: 'Clicca per info'
-				});
-				marker.addListener('click', function()
-				{
-					infowindow.open(mymap, marker);
-				});*/
-			
-			//	marker.setIcon(icon);
-
-				var infowindows_text="ccc";
+			var infowindows_text="ccc";
 				setMarker(matrix,mymap,icon,infowindows_text,i);
 				
 				async function codeAddress(center){							// F. per associare una posizione specifica ad un marker sulla mappa
@@ -180,7 +171,7 @@ function initMap()		// F. per settare la mappa
         					 				map: map,										// - mappa su cui verrà messo il marker ;
         					  				position: results[0].geometry.location			// - posizione del marker ;
 										 });
-										 let isok= await DistanceOK(10300000,center,results[0].geometry.location);
+										 let isok= await DistanceOK(50,center,results[0].geometry.location);
 										 if(isok){
 											arrayCoor.push(results[0].geometry.location)
 										 }
@@ -216,7 +207,28 @@ function initMap()		// F. per settare la mappa
 		}
 	}
 	
-	function setMarker(matrix,mymap,icon,contentString,i){				// F. per associare ad un marker delle coordinate e creare una finestra di descrizione la click
+	function setMarker(lat,lng,mymap,icon,contentString){				// F. per associare ad un marker delle coordinate e creare una finestra di descrizione la click
+		  //var contentString = "ciao.2"
+			var randPlace = {lat: lat, lng: lng};		// Passa il valore delle coordinate
+			var infowindow = new google.maps.InfoWindow(			// Dichiarazione della finestra
+			{
+				content: contentString								// Dichiarazione del contenuto della finestra
+			});
+
+			var marker = new google.maps.Marker(					// Dichiarazione marker :
+				{
+					position: randPlace,							// - coordinate ;
+					map: mymap,										// - mappa su cui verrà messo il marker ;
+					title: 'Clicca per info.2'						// - scritta visualizzata al passaggio del mouse.
+				});
+			marker.addListener('click', function()
+				{
+					infowindow.open(mymap, marker);					// Dichiarazione modalità di apertura della finestra
+				});
+			marker.setIcon(icon);
+	}
+
+	/*function setMarker(matrix,mymap,icon,contentString,i){				// F. per associare ad un marker delle coordinate e creare una finestra di descrizione la click
 		  //var contentString = "ciao.2"
 			var randPlace = {lat: matrix[i][0], lng: matrix[i][1]};		// Passa il valore delle coordinate
 			var infowindow = new google.maps.InfoWindow(			// Dichiarazione della finestra
@@ -235,7 +247,7 @@ function initMap()		// F. per settare la mappa
 					infowindow.open(mymap, marker);					// Dichiarazione modalità di apertura della finestra
 				});
 			marker.setIcon(icon);
-	}
+	}*/
 //------------------------------------------------------------------------------------
 	function GetDistance(origin,destination){
 		var service = new google.maps.DistanceMatrixService();
@@ -267,7 +279,11 @@ function initMap()		// F. per settare la mappa
 
  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCl6nUpFSc_XBGiAr7xgMA6OcBqcOwrRFk&callback=initMap" async defer></script>
  <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.1/jquery.min.js"></script>
+ <script src="https://iridesgroup.crm4.dynamics.com//WebResources/iri_mapForContracts"></script>
  <div id="map"></div>
 
 	</body>
 </html>
+
+
+<!--https://iridesgroup.crm4.dynamics.com/WebResources/iri_mapForContracts_page?Data=0;0-->
